@@ -1,0 +1,36 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform plan
+*.plan
+
+# Ansible
+*.retry
+vault.yml
+secrets.yml
+
+# Kubernetes
+kubeconfig*
+*.kubeconfig
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node
+node_modules/
+
+# Logs
+*.log
