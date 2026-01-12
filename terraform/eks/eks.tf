@@ -3,7 +3,7 @@ resource "aws_eks_cluster" "this" {
   role_arn = aws_iam_role.eks_cluster_role.arn
 
   vpc_config {
-    subnet_ids = var.private_subnets
+    subnet_ids = data.terraform_remote_state.network.outputs.private_subnets
     endpoint_private_access = true
     endpoint_public_access  = true
   }
