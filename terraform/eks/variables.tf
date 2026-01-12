@@ -5,3 +5,8 @@ variable "private_subnets" {
     "subnet-bbbb2222"
   ]
 }
+variable "cluster_name" {
+  type    = string
+  default = "eks-devops-cluster"
+}
+

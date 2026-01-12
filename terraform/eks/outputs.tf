@@ -13,3 +13,11 @@ output "cluster_ca" {
 output "cluster_role_arn" {
   value = aws_iam_role.eks_cluster_role.arn
 }
+
+output "nodegroup_role_arn" {
+  value = aws_iam_role.eks_node_role.arn
+}
+
+output "nodegroup_name" {
+  value = aws_eks_node_group.default.node_group_name
+}
