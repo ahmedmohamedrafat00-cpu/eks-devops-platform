@@ -17,9 +17,9 @@ override.tf.json
 vault.yml
 secrets.yml
 
-# Kubernetes
-kubeconfig*
-*.kubeconfig
+# Ignore generated kubeconfigs
+kubernetes/kubeconfig/*
+!kubernetes/kubeconfig/*.tpl
 
 # OS
 .DS_Store
