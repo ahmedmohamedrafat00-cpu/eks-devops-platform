@@ -45,3 +45,9 @@ resource "aws_iam_instance_profile" "ansible_profile" {
   name = "ansible-eks-profile"
   role = aws_iam_role.ansible_role.name
 }
+
+resource "aws_iam_role_policy_attachment" "ansible_eks_cluster" {
+  role       = aws_iam_role.ansible_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+}
+
