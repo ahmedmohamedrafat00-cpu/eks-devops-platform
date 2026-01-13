@@ -1,8 +1,9 @@
 resource "aws_eks_node_group" "default" {
-  cluster_name    = var.cluster_name
+  cluster_name    = aws_eks_cluster.this.name
   node_group_name = "eks-devops-nodes"
   node_role_arn  = aws_iam_role.eks_node_role.arn
-  subnet_ids      = var.private_subnets
+
+  subnet_ids = data.terraform_remote_state.network.outputs.private_subnets
 
   scaling_config {
     desired_size = 2
