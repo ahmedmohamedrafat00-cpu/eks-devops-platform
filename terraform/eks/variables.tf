@@ -10,3 +10,8 @@
   #default = "eks-devops-cluster"
 #}
 
+variable "cluster_name" {
+  description = "EKS cluster name"
+  type        = string
+  default     = "eks-devops-cluster"
+}

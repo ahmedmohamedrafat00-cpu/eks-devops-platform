@@ -21,14 +21,14 @@ resource "aws_security_group" "jenkins_sg" {
   vpc_id = data.terraform_remote_state.network.outputs.vpc_id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    security_groups = [
-      aws_security_group.bastion_sg.id,
-      data.terraform_remote_state.network.outputs.ansible_security_group_id
-    ]
-  }
+  description     = "Allow EKS API access from Ansible"
+  from_port       = 443
+  to_port         = 443
+  protocol        = "tcp"
+  security_groups = [
+    data.terraform_remote_state.network.outputs.ansible_security_group_id
+  ]
+}
 
   ingress {
     from_port   = 8080
