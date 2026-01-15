@@ -15,3 +15,8 @@ variable "cluster_name" {
   type        = string
   default     = "eks-devops-cluster"
 }
+
+variable "kubernetes_version" {
+  type    = string
+  default = "1.30"
+}

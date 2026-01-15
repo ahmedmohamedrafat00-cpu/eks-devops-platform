@@ -6,7 +6,7 @@ resource "aws_eks_cluster" "this" {
   vpc_config {
     subnet_ids = data.terraform_remote_state.network.outputs.private_subnets
 
-    endpoint_private_access = false
+    endpoint_private_access = true
     endpoint_public_access  = true
   }
 }
