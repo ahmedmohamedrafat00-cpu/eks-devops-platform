@@ -13,3 +13,11 @@ output "jenkins_role_name" {
 output "jenkins_instance_profile_name" {
   value = aws_iam_instance_profile.jenkins_profile.name
 }
+
+output "ansible_role_arn" {
+  value = aws_iam_role.ansible_role.arn
+}
+
+output "jenkins_role_arn" {
+  value = aws_iam_role.jenkins_role.arn
+}
