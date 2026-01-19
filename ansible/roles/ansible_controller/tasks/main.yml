@@ -94,3 +94,23 @@
   become_user: ec2-user
   register: kubectl_nodes
   changed_when: false
+
+# aws eks update-kubeconfig
+- name: Update kubeconfig for EKS
+  become: false
+  command: >
+    aws eks update-kubeconfig
+    --region us-east-1
+    --name eks-devops-cluster
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+
+# Kubernetes test
+- name: Test kubectl access
+  become: false
+  command: kubectl get nodes
+  register: kubectl_nodes
+
+- debug:
+    var: kubectl_nodes.stdout
+
