@@ -1,0 +1,8 @@
+- name: Bootstrap Ansible Server
+  hosts: ansible_servers
+  become: true
+  gather_facts: true
+
+  tasks:
+    - name: Ping server
+      ping:

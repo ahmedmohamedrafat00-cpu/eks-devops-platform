@@ -18,6 +18,7 @@ override.tf.json
 *.retry
 vault.yml
 secrets.yml
+ansible/inventory/hosts.generated.ini
 
 # Ignore generated kubeconfigs
 kubernetes/kubeconfig/*
