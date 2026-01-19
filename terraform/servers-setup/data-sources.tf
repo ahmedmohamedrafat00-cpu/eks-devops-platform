@@ -29,3 +29,11 @@ data "aws_ami" "amazon_linux_2023" {
     values = ["al2023-ami-*-x86_64"]
   }
 }
+
+data "terraform_remote_state" "servers" {
+  backend = "local"
+
+  config = {
+    path = "../servers/terraform.tfstate"
+  }
+}

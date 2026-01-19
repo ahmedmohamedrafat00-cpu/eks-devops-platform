@@ -8,6 +8,8 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+*.pem
+*.key
 
 # Terraform plan
 *.plan
