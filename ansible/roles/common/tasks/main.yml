@@ -1,0 +1,17 @@
+---
+- name: Update system packages
+  become: true
+  yum:
+    name: "*"
+    state: latest
+
+- name: Install common packages
+  become: true
+  yum:
+    name:
+      - git
+      - curl
+      - unzip
+      - wget
+      - jq
+    state: present

@@ -1,8 +1,7 @@
-- name: Bootstrap Ansible Server
+---
+- name: Bootstrap Ansible Controller
   hosts: ansible_servers
   become: true
-  gather_facts: true
-
-  tasks:
-    - name: Ping server
-      ping:
+  roles:
+    - common
+    - ansible_controller

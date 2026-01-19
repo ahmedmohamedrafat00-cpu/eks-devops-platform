@@ -1,0 +1,23 @@
+---
+- name: Install AWS CLI v2
+  become: true
+  shell: |
+    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
+    unzip -o awscliv2.zip
+    ./aws/install
+  args:
+    creates: /usr/local/bin/aws
+
+- name: Install kubectl
+  become: true
+  get_url:
+    url: https://amazon-eks.s3.amazonaws.com/1.34.2/2024-12-12/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+
+- name: Install Helm
+  become: true
+  shell: |
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
