@@ -6,21 +6,12 @@
     state: latest
     update_cache: yes
 
-- name: Install basic packages
+- name: Install basic packages (Amazon Linux 2023 safe)
   become: true
   dnf:
     name:
-      - curl
-      - wget
-      - unzip
       - git
-      - tar
-      - yum-utils
+      - unzip
       - jq
-      - vim
+      - curl-minimal
     state: present
-
-- name: Set timezone to UTC
-  become: true
-  timezone:
-    name: UTC
