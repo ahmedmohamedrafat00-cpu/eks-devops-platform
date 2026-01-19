@@ -1,17 +1,26 @@
 ---
-- name: Update system packages
+- name: Update all packages
   become: true
-  yum:
+  dnf:
     name: "*"
     state: latest
+    update_cache: yes
 
-- name: Install common packages
+- name: Install basic packages
   become: true
-  yum:
+  dnf:
     name:
-      - git
       - curl
-      - unzip
       - wget
+      - unzip
+      - git
+      - tar
+      - yum-utils
       - jq
+      - vim
     state: present
+
+- name: Set timezone to UTC
+  become: true
+  timezone:
+    name: UTC
