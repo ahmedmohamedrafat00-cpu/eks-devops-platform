@@ -182,3 +182,16 @@
     --set controller.admin.password=admin123
     --set persistence.enabled=false
 
+# ServiceAccount
+- name: Create Jenkins ServiceAccount with IRSA
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: jenkins
+        namespace: cicd
+        annotations:
+          eks.amazonaws.com/role-arn: arn:aws:iam::985539792593:role/jenkins-irsa-role
+
