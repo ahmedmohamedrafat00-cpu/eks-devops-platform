@@ -1,0 +1,16 @@
+namespace: dev
+
+postgres:
+  image:
+    repository: postgres
+    tag: "14"
+  replicas: 1
+
+postgresConfig:
+  db: mydb
+  user: postgres
+  password: password
+
+storage:
+  size: 5Gi
+  storageClassName: gp2
