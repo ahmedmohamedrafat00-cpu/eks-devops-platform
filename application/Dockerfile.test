@@ -1,0 +1,9 @@
+FROM python:3.13-slim
+
+WORKDIR /tests
+
+COPY tests/ .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["pytest", "test_api_dashboard.py", "--maxfail=1", "--disable-warnings", "-q"]
