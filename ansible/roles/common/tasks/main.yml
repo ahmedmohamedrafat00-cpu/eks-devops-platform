@@ -12,6 +12,8 @@
     name:
       - git
       - unzip
-      - jq
-      - curl-minimal
+      - tar
+      - python3
+      - python3-pip
     state: present
+

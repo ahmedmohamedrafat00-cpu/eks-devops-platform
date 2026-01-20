@@ -154,3 +154,31 @@
     --namespace ingress-nginx
     --create-namespace
 
+# Jenkins Helm repo
+- name: Add Jenkins Helm repo
+  command: helm repo add jenkins https://charts.jenkins.io
+  register: jenkins_repo_add
+  failed_when: false
+
+- name: Add ingress-nginx Helm repo
+  command: helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+  register: ingress_repo_add
+  failed_when: false
+
+- name: Update Helm repositories
+  command: helm repo update
+
+# Deploy Jenkins
+- name: Deploy Jenkins via Helm
+  command: >
+    helm upgrade --install jenkins jenkins/jenkins
+    --namespace cicd
+    --create-namespace
+    --set controller.serviceType=ClusterIP
+    --set controller.ingress.enabled=true
+    --set controller.ingress.ingressClassName=nginx
+    --set controller.ingress.hostName=jenkins.eks-devops.local
+    --set controller.admin.username=admin
+    --set controller.admin.password=admin123
+    --set persistence.enabled=false
+
