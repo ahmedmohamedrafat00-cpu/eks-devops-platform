@@ -114,3 +114,43 @@
 - debug:
     var: kubectl_nodes.stdout
 
+# Python Kubernetes Client
+- name: Install Python dependencies for Kubernetes modules
+  become: true
+  pip:
+    name:
+      - kubernetes
+      - openshift
+    executable: pip3
+
+# Create Kubernetes Namespaces (via Ansible)
+- name: Create Kubernetes namespaces
+  become: false
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ item }}"
+  loop:
+    - cicd
+    - monitoring
+    - ingress
+    - apps
+
+# Add Helm Repositories (Automation)
+- name: Add Helm repositories
+  become: false
+  shell: |
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx || true
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+    helm repo update
+
+# Test Helm Deploy (Ingress NGINX)
+- name: Deploy ingress-nginx via Helm
+  command: >
+    helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx
+    --namespace ingress-nginx
+    --create-namespace
+
