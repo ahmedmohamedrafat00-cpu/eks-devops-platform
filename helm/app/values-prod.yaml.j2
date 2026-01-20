@@ -1,0 +1,18 @@
+namespace: prod
+
+backend:
+  replicas: 2
+  image:
+    repository: "{{ ecr_repo }}/backend"
+    tag: "latest"
+    pullPolicy: Always
+
+frontend:
+  replicas: 2
+  image:
+    repository: "{{ ecr_repo }}/frontend"
+    tag: "latest"
+    pullPolicy: Always
+
+ingress:
+  host: prod.app.local

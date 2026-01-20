@@ -1,0 +1,23 @@
+namespace: dev
+
+backend:
+  replicas: 1
+  image:
+    repository: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+frontend:
+  replicas: 1
+  image:
+    repository: ""
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  host: app.local
+  className: nginx
+
+config:
+  SPRING_PROFILES_ACTIVE: dev

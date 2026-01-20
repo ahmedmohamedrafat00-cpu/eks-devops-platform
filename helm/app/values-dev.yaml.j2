@@ -1,0 +1,14 @@
+namespace: dev
+
+backend:
+  image:
+    repository: "{{ ecr_repo }}/backend"
+    tag: "{{ build_tag }}"
+
+frontend:
+  image:
+    repository: "{{ ecr_repo }}/frontend"
+    tag: "{{ build_tag }}"
+
+ingress:
+  host: dev.app.local

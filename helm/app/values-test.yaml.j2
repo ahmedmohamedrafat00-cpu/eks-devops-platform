@@ -1,0 +1,16 @@
+namespace: test
+
+backend:
+  replicas: 1
+  image:
+    repository: "{{ ecr_repo }}/backend"
+    tag: "{{ build_tag }}"
+
+frontend:
+  replicas: 1
+  image:
+    repository: "{{ ecr_repo }}/frontend"
+    tag: "{{ build_tag }}"
+
+ingress:
+  host: test.app.local
