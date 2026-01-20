@@ -1,56 +1,58 @@
 pipeline {
-    agent any
+  agent {
+    kubernetes {
+      yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - cat
+    tty: true
+"""
+    }
+  }
 
-    environment {
-        SSH_CREDENTIALS_ID = 'eks-devops-ssh'
-        ANSIBLE_USER       = 'ec2-user'
-        ANSIBLE_DIR        = 'ansible'
+  environment {
+    AWS_REGION = "us-east-1"
+    ECR_REPO   = "985539792593.dkr.ecr.us-east-1.amazonaws.com/eks-devops-app"
+    IMAGE_TAG  = "${BUILD_NUMBER}"
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
     }
 
-    stages {
-
-        stage('Checkout Source') {
-            steps {
-                checkout scm
-            }
+    stage('Build & Push Image (Kaniko)') {
+      steps {
+        container('kaniko') {
+          sh '''
+            /kaniko/executor \
+              --context $(pwd) \
+              --dockerfile Dockerfile \
+              --destination $ECR_REPO:$IMAGE_TAG
+          '''
         }
-
-        stage('Verify SSH Key Loaded') {
-            steps {
-                sshagent(credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                    sh '''
-                      echo "SSH agent loaded successfully"
-                      ssh -V
-                    '''
-                }
-            }
-        }
-
-        stage('Validate Ansible Structure') {
-            steps {
-                sh '''
-                  ansible --version
-                  ls -la ${ANSIBLE_DIR}
-                '''
-            }
-        }
-
-        stage('Dry Run (Inventory Only)') {
-            steps {
-                sh '''
-                  echo "Inventory preview:"
-                  cat ${ANSIBLE_DIR}/inventory/hosts.ini || true
-                '''
-            }
-        }
+      }
     }
 
-    post {
-        success {
-            echo 'Stage B1 completed successfully'
-        }
-        failure {
-            echo 'Stage B1 failed'
-        }
+    stage('Deploy to EKS') {
+      steps {
+        sh '''
+          helm upgrade --install app ./helm/app \
+            --namespace apps \
+            --create-namespace \
+            --set image.repository=$ECR_REPO \
+            --set image.tag=$IMAGE_TAG
+        '''
+      }
     }
+  }
 }
