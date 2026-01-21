@@ -6,3 +6,8 @@
     - common
     - ansible_controller
 
+- hosts: ansible
+  become: true
+  roles:
+    - nexus
+
