@@ -13,3 +13,11 @@ data "terraform_remote_state" "iam" {
     path = "../iam/terraform.tfstate"
   }
 }
+
+data "aws_eks_cluster" "eks" {
+  name = var.cluster_name
+}
+
+data "aws_eks_cluster_auth" "eks" {
+  name = var.cluster_name
+}
