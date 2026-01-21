@@ -1,16 +1,15 @@
-namespace: dev
-
 postgres:
+  replicas: 1
   image:
     repository: postgres
-    tag: "14"
-  replicas: 1
+    tag: "17"
 
 postgresConfig:
-  db: mydb
-  user: postgres
-  password: password
+  db: myappdb
+  user: appuser
+  password: apppassword
 
-storage:
+persistence:
+  enabled: true
   size: 5Gi
-  storageClassName: gp2
+  storageClass: gp2

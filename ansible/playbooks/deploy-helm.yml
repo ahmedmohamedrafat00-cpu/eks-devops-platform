@@ -1,0 +1,49 @@
+---
+- name: Deploy Application to EKS using Helm
+  hosts: ansible
+  become: false
+
+  vars:
+    deploy_env: "{{ deploy_env | default('dev') }}"
+    app_namespace: "app-{{ deploy_env }}"
+    repo_dir: "/home/ec2-user/eks-devops-platform"
+
+  tasks:
+
+    - name: Clone or update repository
+      git:
+        repo: https://github.com/ahmedmohamedrafat00-cpu/eks-devops-platform.git
+        dest: "{{ repo_dir }}"
+        version: main
+        update: yes
+
+    - name: Print deployment info
+      debug:
+        msg:
+          - "Deploy environment: {{ deploy_env }}"
+          - "Namespace: {{ app_namespace }}"
+
+    - name: Ensure namespace exists
+      kubernetes.core.k8s:
+        api_version: v1
+        kind: Namespace
+        name: "{{ app_namespace }}"
+        state: present
+
+    # ---------------------------
+    # PostgreSQL
+    # ---------------------------
+    - name: Deploy PostgreSQL via Helm
+      command: >
+        helm upgrade --install postgres {{ repo_dir }}/helm/postgres
+        --namespace {{ app_namespace }}
+        -f {{ repo_dir }}/helm/postgres/values.yaml
+
+    # ---------------------------
+    # Application
+    # ---------------------------
+    - name: Deploy Application via Helm
+      command: >
+        helm upgrade --install app {{ repo_dir }}/helm/app
+        --namespace {{ app_namespace }}
+        -f {{ repo_dir }}/helm/app/values.yaml
