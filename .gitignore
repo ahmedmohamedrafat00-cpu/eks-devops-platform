@@ -37,3 +37,10 @@ node_modules/
 
 # Logs
 *.log
+
+target
+.git
+.gitignore
+Dockerfile.test
+docker-compose.yaml
+
