@@ -1,23 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: {{ include "app.fullname" . }}-backend
+  labels:
+    app: {{ include "app.name" . }}
+    component: backend
 spec:
-  replicas: {{ .Values.backend.replicas }}
+  replicas: {{ .Values.backend.replicaCount | default 1 }}
   selector:
     matchLabels:
-      app: backend
+      app: {{ include "app.name" . }}
+      component: backend
   template:
     metadata:
       labels:
-        app: backend
+        app: {{ include "app.name" . }}
+        component: backend
     spec:
+      imagePullSecrets:
+        - name: nexus-credentials
+
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.backend.containerPort }}
+
           env:
             - name: SPRING_PROFILES_ACTIVE
-              value: {{ .Values.config.SPRING_PROFILES_ACTIVE }}
+              value: {{ .Values.global.env | default "dev" | quote }}
+
+          resources:
+            requests:
+              cpu: {{ .Values.backend.resources.requests.cpu | default "250m" }}
+              memory: {{ .Values.backend.resources.requests.memory | default "512Mi" }}
+            limits:
+              cpu: {{ .Values.backend.resources.limits.cpu | default "1" }}
+              memory: {{ .Values.backend.resources.limits.memory | default "1Gi" }}
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.backend.containerPort }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.backend.containerPort }}
+            initialDelaySeconds: 60
+            periodSeconds: 20

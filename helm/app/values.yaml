@@ -1,23 +1,52 @@
-namespace: dev
+global:
+  env: dev
 
 backend:
   replicas: 1
+
   image:
-    repository: ""
-    tag: "latest"
+    repository: a8bcd90ff89904a28acd94cd112c6650-8a32720f9a3344d2.elb.us-east-1.amazonaws.com:8082/app-backend
+    tag: latest
     pullPolicy: IfNotPresent
+
+  containerPort: 8080
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
 
 frontend:
   replicas: 1
+
   image:
-    repository: ""
-    tag: "latest"
+    repository: nginx
+    tag: latest
     pullPolicy: IfNotPresent
+
+  containerPort: 80
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+
+
+service:
+  type: ClusterIP
+
 
 ingress:
   enabled: true
-  host: app.local
   className: nginx
-
-config:
-  SPRING_PROFILES_ACTIVE: dev
+  host: app.local
+  paths:
+    - path: /
+      pathType: Prefix

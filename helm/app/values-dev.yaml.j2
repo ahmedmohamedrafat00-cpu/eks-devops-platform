@@ -1,14 +1,9 @@
-namespace: dev
-
 backend:
-  image:
-    repository: "{{ ecr_repo }}/backend"
-    tag: "{{ build_tag }}"
+  replicaCount: 1
+  containerPort: 8080
 
-frontend:
   image:
-    repository: "{{ ecr_repo }}/frontend"
-    tag: "{{ build_tag }}"
+    repository: a8bcd90ff89904a28acd94cd112c6650-8a32720f9a3344d2.elb.us-east-1.amazonaws.com:8082/app-backend
+    tag: latest
+    pullPolicy: Always
 
-ingress:
-  host: dev.app.local
