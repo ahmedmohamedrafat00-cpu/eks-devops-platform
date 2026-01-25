@@ -6,14 +6,22 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command:
-        - cat
-      tty: true
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+      - cat
+    tty: true
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "1"
+        memory: "2Gi"
+    volumeMounts:
+      - name: docker-config
+        mountPath: /kaniko/.docker
+
   volumes:
     - name: docker-config
       secret:
