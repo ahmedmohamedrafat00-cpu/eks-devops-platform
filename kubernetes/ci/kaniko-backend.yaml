@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kaniko-backend
+  namespace: ci
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+
+        env:
+        - name: IMAGE_TAG
+          value: "v$(date +%Y%m%d%H%M%S)"
+
+        args:
+          - "--context=/workspace/application"
+          - "--dockerfile=/workspace/application/Dockerfile"
+          - "--destination=nexus-docker-service.eks-build.svc.cluster.local:8082/repository/docker-hosted/app-backend:$(IMAGE_TAG)"
+          - "--insecure"
+          - "--skip-tls-verify"
+          - "--verbosity=info"
+
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: docker-config
+          mountPath: /kaniko/.docker
+
+      volumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: ci-workspace-pvc
+
+      - name: docker-config
+        secret:
+          secretName: nexus-docker-config
