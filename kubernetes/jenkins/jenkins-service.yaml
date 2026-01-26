@@ -8,5 +8,12 @@ spec:
   selector:
     app: jenkins
   ports:
-    - port: 80
+    - name: http
+      port: 8080
+      protocol: TCP
       targetPort: 8080
+
+    - name: jnlp
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
