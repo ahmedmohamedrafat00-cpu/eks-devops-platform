@@ -41,7 +41,7 @@ spec:
         /kaniko/executor \
           --dockerfile=application/Dockerfile \
           --context=application \
-          --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend:latest \
+          --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/docker-hosted/app-backend:latest
           --insecure \
           --skip-tls-verify
         '''
