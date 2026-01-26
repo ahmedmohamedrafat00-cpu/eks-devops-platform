@@ -61,7 +61,7 @@ spec:
             /kaniko/executor \
               --dockerfile=application/Dockerfile \
               --context=application \
-              --destination=${NEXUS_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} \
+              --destination=${NEXUS_REGISTRY}/docker-hosted/${IMAGE_NAME}:${IMAGE_TAG}
               --insecure \
               --skip-tls-verify
           '''
