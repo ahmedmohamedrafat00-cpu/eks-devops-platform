@@ -1,6 +1,7 @@
 pipeline {
   agent {
     kubernetes {
+      defaultContainer 'kaniko'
       yaml """
 apiVersion: v1
 kind: Pod
@@ -36,16 +37,14 @@ spec:
   stages {
     stage('Build & Push Backend Image') {
       steps {
-        container('kaniko') {
-          sh '''
-          /kaniko/executor \
-            --dockerfile=application/Dockerfile \
-            --context=application \
-            --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend:latest \
-            --insecure \
-            --skip-tls-verify
-          '''
-        }
+        sh '''
+        /kaniko/executor \
+          --dockerfile=application/Dockerfile \
+          --context=application \
+          --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend:latest \
+          --insecure \
+          --skip-tls-verify
+        '''
       }
     }
   }
