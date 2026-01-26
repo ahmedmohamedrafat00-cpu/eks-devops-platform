@@ -64,6 +64,7 @@ spec:
               --destination=${NEXUS_REGISTRY}/docker-hosted/${IMAGE_NAME}:${IMAGE_TAG}
               --insecure \
               --skip-tls-verify
+              --insecure-pull
           '''
         }
       }
