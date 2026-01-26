@@ -4,42 +4,44 @@ pipeline {
       yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  labels:
+    role: ci
 spec:
+  serviceAccountName: jenkins
+  nodeSelector:
+    role: ci
+  tolerations:
+  - key: "ci"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      resources:
-        requests:
-          cpu: "500m"
-          memory: "1Gi"
-        limits:
-          cpu: "1"
-          memory: "2Gi"
-      volumeMounts:
-        - name: docker-config
-          mountPath: /kaniko/.docker
-  volumes:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - /busybox/cat
+    tty: true
+    volumeMounts:
     - name: docker-config
-      secret:
-        secretName: nexus-docker-config
+      mountPath: /kaniko/.docker
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: nexus-docker-config
 """
     }
   }
 
-  environment {
-    IMAGE_NAME = "nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend"
-    IMAGE_TAG  = "1.0.0"
-  }
-
   stages {
-    stage('Build & Push Image') {
+    stage('Build & Push Backend Image') {
       steps {
         container('kaniko') {
           sh '''
           /kaniko/executor \
             --dockerfile=application/Dockerfile \
-            --context=git://https://github.com/ahmedmohamedrafat00-cpu/eks-devops-platform.git \
-            --destination=${IMAGE_NAME}:${IMAGE_TAG} \
+            --context=application \
+            --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend:latest \
             --insecure \
             --skip-tls-verify
           '''
