@@ -6,6 +6,8 @@ metadata:
   labels:
     app: jenkins
 spec:
+  nodeSelector:
+    workload: ci
   replicas: 1
   selector:
     matchLabels:
