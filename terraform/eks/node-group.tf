@@ -6,12 +6,12 @@ resource "aws_eks_node_group" "default" {
   subnet_ids = data.terraform_remote_state.network.outputs.private_subnets
 
   scaling_config {
-    desired_size = 2
-    max_size     = 3
-    min_size     = 1
+    desired_size = 3
+    max_size     = 4
+    min_size     = 2
   }
 
-  instance_types = ["t3.medium"]
+  instance_types = ["t3.large"]
   ami_type       = "AL2023_x86_64_STANDARD"
 
   depends_on = [
