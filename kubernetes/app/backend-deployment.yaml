@@ -19,7 +19,7 @@ spec:
         - name: nexus-docker-config
       containers:
         - name: app-backend
-          image: nexus-docker-service.eks-build.svc.cluster.local:8082/app-backend:latest
+          image: nexus-docker-service.eks-build:8082/app-backend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
