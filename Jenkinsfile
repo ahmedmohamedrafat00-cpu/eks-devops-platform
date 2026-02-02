@@ -12,36 +12,39 @@ spec:
     command:
     - /busybox/cat
     tty: true
+    env:
+    - name: AWS_REGION
+      value: us-east-1
+    - name: AWS_SDK_LOAD_CONFIG
+      value: "true"
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
   volumes:
   - name: docker-config
-    secret:
-      secretName: nexus-docker-config
-      items:
-      - key: .dockerconfigjson
-        path: config.json
+    emptyDir: {}
 """
     }
   }
 
+  environment {
+    AWS_ACCOUNT_ID = "985539792593"
+    AWS_REGION     = "us-east-1"
+    ECR_REPO       = "app-backend"
+    IMAGE_TAG      = "${BUILD_NUMBER}"
+  }
+
   stages {
-    stage('Build & Push Backend Image') {
+    stage('Build & Push Backend Image to ECR') {
       steps {
         container('kaniko') {
           sh '''
-          echo "=== CHECK DOCKER CONFIG ==="
-          ls -l /kaniko/.docker
-          cat /kaniko/.docker/config.json
+            echo "=== BUILD & PUSH TO ECR ==="
 
-          echo "=== BUILD & PUSH ==="
-          /kaniko/executor \
-            --dockerfile=application/Dockerfile \
-            --context=application \
-            --destination=nexus-docker-service.eks-build.svc.cluster.local:8082/docker-hosted/app-backend:latest \
-            --insecure \
-            --skip-tls-verify
+            /kaniko/executor \
+              --dockerfile=application/Dockerfile \
+              --context=application \
+              --destination=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
           '''
         }
       }

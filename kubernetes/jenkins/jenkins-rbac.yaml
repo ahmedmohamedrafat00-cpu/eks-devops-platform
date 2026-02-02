@@ -3,6 +3,8 @@ kind: ServiceAccount
 metadata:
   name: jenkins
   namespace: ci
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::985539792593:role/jenkins-irsa-role
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
