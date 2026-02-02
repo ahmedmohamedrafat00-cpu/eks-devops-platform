@@ -53,9 +53,8 @@ spec:
       steps {
         container('helm') {
           sh '''
-            helm upgrade --install ${RELEASE_NAME} helm/app \
-              --namespace ${NAMESPACE} \
-              --create-namespace \
+            helm upgrade --install app helm/app \
+              --namespace ci \
               --set backend.image.tag=${IMAGE_TAG}
           '''
         }
