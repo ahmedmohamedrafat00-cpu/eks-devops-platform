@@ -15,3 +15,9 @@ data:
       username: ansible
       groups:
         - system:masters
+
+    - rolearn: arn:aws:iam::985539792593:role/jenkins-irsa-role
+      username: system:serviceaccount:ci:jenkins
+      groups:
+        - system:masters
+
