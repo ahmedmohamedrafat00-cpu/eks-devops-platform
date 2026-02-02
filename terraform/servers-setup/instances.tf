@@ -14,7 +14,7 @@ resource "aws_instance" "ansible" {
   instance_type = "t3.medium"
   subnet_id     = data.terraform_remote_state.network.outputs.private_subnets[0]
   vpc_security_group_ids = [
-    aws_security_group.ansible_sg.id
+    data.terraform_remote_state.network.outputs.ansible_security_group_id
   ]
   key_name = data.terraform_remote_state.servers.outputs.key_pair_name
 

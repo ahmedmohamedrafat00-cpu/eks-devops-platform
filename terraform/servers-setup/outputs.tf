@@ -6,10 +6,6 @@ output "jenkins_sg_id" {
   value = aws_security_group.jenkins_sg.id
 }
 
-output "ansible_sg_id" {
-  value = aws_security_group.ansible_sg.id
-}
-
 output "bastion_public_ip" {
   value = aws_instance.bastion.public_ip
 }
@@ -20,4 +16,8 @@ output "jenkins_public_ip" {
 
 output "ansible_private_ip" {
   value = aws_instance.ansible.private_ip
+}
+
+output "ansible_sg_id" {
+  value = data.terraform_remote_state.network.outputs.ansible_security_group_id
 }
