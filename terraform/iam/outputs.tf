@@ -21,3 +21,7 @@ output "ansible_role_arn" {
 output "jenkins_role_arn" {
   value = aws_iam_role.jenkins_role.arn
 }
+
+output "bastion_role_arn" {
+  value = aws_iam_role.bastion_role.arn
+}
