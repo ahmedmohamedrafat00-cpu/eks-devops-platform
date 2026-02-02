@@ -2,16 +2,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "app.fullname" . }}
+  name: app
   annotations:
     kubernetes.io/ingress.class: alb
-
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
-
     alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
-
 spec:
   ingressClassName: alb
   rules:
@@ -21,7 +18,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "app.fullname" . }}-backend
+                name: backend
                 port:
                   number: 80
 {{- end }}
