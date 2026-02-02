@@ -28,3 +28,6 @@ frontend:
     pullPolicy: IfNotPresent
 
   containerPort: 80
+
+ingress:
+  enabled: false
