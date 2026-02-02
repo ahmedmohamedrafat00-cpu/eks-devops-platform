@@ -30,4 +30,6 @@ frontend:
   containerPort: 80
 
 ingress:
-  enabled: false
+  enabled: true
+  host: app.dev.example.com
+
