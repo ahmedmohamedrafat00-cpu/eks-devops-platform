@@ -21,3 +21,7 @@ output "nodegroup_role_arn" {
 output "nodegroup_name" {
   value = aws_eks_node_group.default.node_group_name
 }
+
+output "app_backend_ecr_url" {
+  value = aws_ecr_repository.app_backend.repository_url
+}

@@ -12,8 +12,16 @@ data "aws_eks_cluster_auth" "this" {
 }
 
 # Get OIDC provider
-data "aws_iam_openid_connect_provider" "this" {
+resource "aws_iam_openid_connect_provider" "this" {
   url = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    "9e99a48a9960b14926bb7f3b02e22da0ecd2e9f1"
+  ]
 }
 
 locals {
@@ -23,7 +31,6 @@ locals {
     ""
   )
 }
-
 ############################
 # IAM Role for EBS CSI
 ############################
@@ -33,7 +40,7 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 
     principals {
       type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.this.arn]
+      identifiers = [aws_iam_openid_connect_provider.this.arn]
     }
 
     actions = ["sts:AssumeRoleWithWebIdentity"]

@@ -21,3 +21,12 @@ data "aws_eks_cluster" "eks" {
 data "aws_eks_cluster_auth" "eks" {
   name = var.cluster_name
 }
+
+data "terraform_remote_state" "servers_setup" {
+  backend = "local"
+
+  config = {
+    path = "../servers-setup/terraform.tfstate"
+  }
+}
+
