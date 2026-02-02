@@ -10,27 +10,13 @@ spec:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
     command:
-    - /busybox/cat
+      - /busybox/cat
     tty: true
     env:
-    - name: AWS_REGION
-      value: us-east-1
-    - name: AWS_SDK_LOAD_CONFIG
-      value: "true"
-    - name: AWS_EC2_METADATA_DISABLED
-      value: "true"
-    volumeMounts:
-    - name: aws-token
-      mountPath: /var/run/secrets/eks.amazonaws.com/serviceaccount
-      readOnly: true
-  volumes:
-  - name: aws-token
-    projected:
-      sources:
-      - serviceAccountToken:
-          path: token
-          expirationSeconds: 86400
-          audience: sts.amazonaws.com
+      - name: AWS_REGION
+        value: us-east-1
+      - name: AWS_SDK_LOAD_CONFIG
+        value: "true"
 """
     }
   }
@@ -49,8 +35,6 @@ spec:
           sh '''
             echo "=== BUILD & PUSH TO ECR ==="
 
-            export AWS_ROLE_ARN=$(cat /var/run/secrets/eks.amazonaws.com/serviceaccount/..data/.. | true)
-            
             /kaniko/executor \
               --dockerfile=application/Dockerfile \
               --context=application \
@@ -62,3 +46,4 @@ spec:
     }
   }
 }
+
