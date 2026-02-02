@@ -2,10 +2,10 @@ global:
   env: dev
 
 backend:
-  replicas: 1
+  replicaCount: 1
 
   image:
-    repository: a8bcd90ff89904a28acd94cd112c6650-8a32720f9a3344d2.elb.us-east-1.amazonaws.com:8082/app-backend
+    repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-backend
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -19,9 +19,8 @@ backend:
       cpu: "500m"
       memory: "1Gi"
 
-
 frontend:
-  replicas: 1
+  replicaCount: 1
 
   image:
     repository: nginx
@@ -29,24 +28,3 @@ frontend:
     pullPolicy: IfNotPresent
 
   containerPort: 80
-
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-    limits:
-      cpu: "200m"
-      memory: "256Mi"
-
-
-service:
-  type: ClusterIP
-
-
-ingress:
-  enabled: true
-  className: nginx
-  host: app.local
-  paths:
-    - path: /
-      pathType: Prefix
