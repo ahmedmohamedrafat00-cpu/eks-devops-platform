@@ -16,13 +16,21 @@ spec:
       value: us-east-1
     - name: AWS_SDK_LOAD_CONFIG
       value: "true"
-
   - name: helm
-    image: alpine/helm:3.14.2
-    command: ["/bin/sh", "-c", "cat"]
+    image: alpine/helm:3.14.4
+    command: ["/bin/sh"]
+    args: ["-c", "cat"]
     tty: true
 """
     }
+  }
+
+  parameters {
+    choice(
+      name: 'ENV',
+      choices: ['dev', 'prod'],
+      description: 'Deployment environment'
+    )
   }
 
   environment {
@@ -30,16 +38,22 @@ spec:
     AWS_REGION     = "us-east-1"
     ECR_REPO       = "app-backend"
     IMAGE_TAG      = "${BUILD_NUMBER}"
-    NAMESPACE      = "ci"
-    RELEASE_NAME   = "app"
   }
 
   stages {
 
-    stage('Build & Push Backend Image') {
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+
+    stage('Build & Push Image') {
       steps {
         container('kaniko') {
           sh '''
+            echo "=== BUILD & PUSH IMAGE ==="
+
             /kaniko/executor \
               --dockerfile=application/Dockerfile \
               --context=application \
@@ -49,16 +63,55 @@ spec:
       }
     }
 
-    stage('Deploy with Helm') {
+    stage('Deploy to Dev') {
+      when {
+        expression { params.ENV == 'dev' }
+      }
       steps {
         container('helm') {
           sh '''
             helm upgrade --install app helm/app \
-              --namespace ci \
+              -n ci \
+              -f helm/app/values-dev.yaml \
               --set backend.image.tag=${IMAGE_TAG}
           '''
         }
       }
+    }
+
+    stage('Approve Prod Deployment') {
+      when {
+        expression { params.ENV == 'prod' }
+      }
+      steps {
+        input message: "Deploy to PRODUCTION?"
+      }
+    }
+
+    stage('Deploy to Prod') {
+      when {
+        expression { params.ENV == 'prod' }
+      }
+      steps {
+        container('helm') {
+          sh '''
+            helm upgrade --install app helm/app \
+              -n prod \
+              --create-namespace \
+              -f helm/app/values-prod.yaml \
+              --set backend.image.tag=${IMAGE_TAG}
+          '''
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "Pipeline finished successfully"
+    }
+    failure {
+      echo "Pipeline failed"
     }
   }
 }
