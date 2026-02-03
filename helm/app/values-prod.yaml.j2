@@ -1,18 +1,35 @@
-namespace: prod
+global:
+  env: prod
 
 backend:
-  replicas: 2
+  replicaCount: 2
+
   image:
-    repository: "{{ ecr_repo }}/backend"
-    tag: "latest"
-    pullPolicy: Always
+    repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-backend
+    tag: "REPLACED_BY_JENKINS"
+    pullPolicy: IfNotPresent
+
+  containerPort: 8080
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
 
 frontend:
-  replicas: 2
+  replicaCount: 2
+
   image:
-    repository: "{{ ecr_repo }}/frontend"
-    tag: "latest"
-    pullPolicy: Always
+    repository: nginx
+    tag: stable
+    pullPolicy: IfNotPresent
+
+  containerPort: 80
 
 ingress:
-  host: prod.app.local
+  enabled: true
+  className: alb
+
