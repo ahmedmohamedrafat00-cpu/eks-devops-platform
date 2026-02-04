@@ -1,0 +1,34 @@
+pipeline {
+  agent {
+    kubernetes {
+      yamlFile 'Jenkins/pod.yaml'
+    }
+  }
+
+  parameters {
+    string(
+      name: 'IMAGE_TAG',
+      defaultValue: '',
+      description: 'Image tag to promote to PROD'
+    )
+  }
+
+  stages {
+
+    stage('Deploy to PROD') {
+      when {
+        expression { params.IMAGE_TAG?.trim() }
+      }
+      steps {
+        container('helm') {
+          sh """
+            helm upgrade --install app helm/app \
+              -n prod \
+              --values helm/app/values-prod.yaml.j2 \
+              --set backend.image.tag=${IMAGE_TAG}
+          """
+        }
+      }
+    }
+  }
+}
