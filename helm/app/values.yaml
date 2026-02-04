@@ -33,3 +33,7 @@ ingress:
   enabled: true
   host: app.dev.example.com
 
+secrets:
+  dbUrl: jdbc:postgresql://postgres:5432/app
+  dbUser: app_user
+  dbPassword: dev_password

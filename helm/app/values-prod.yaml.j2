@@ -17,3 +17,8 @@ frontend:
 ingress:
   enabled: true
   host: ""
+
+secrets:
+  dbUrl: jdbc:postgresql://postgres.prod.svc.cluster.local:5432/app
+  dbUser: app_user
+  dbPassword: prod_password

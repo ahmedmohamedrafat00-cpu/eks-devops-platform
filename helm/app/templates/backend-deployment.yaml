@@ -29,6 +29,10 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.global.env | default "dev" | quote }}
 
+          envFrom:
+            - secretRef:
+                name: {{ include "app.fullname" . }}-secrets
+
           resources:
             requests:
               cpu: {{ .Values.backend.resources.requests.cpu | default "250m" }}
