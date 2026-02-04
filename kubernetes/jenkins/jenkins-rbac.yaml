@@ -3,62 +3,46 @@ kind: ServiceAccount
 metadata:
   name: jenkins
   namespace: ci
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::985539792593:role/jenkins-irsa-role
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: jenkins
 rules:
+  # Core
   - apiGroups: [""]
     resources:
       - pods
       - pods/exec
-      - pods/log
       - services
       - configmaps
       - secrets
-      - persistentvolumeclaims
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
+      - endpoints
+      - namespaces
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Apps
   - apiGroups: ["apps"]
     resources:
       - deployments
       - replicasets
       - statefulsets
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Networking (Ingress)
+  - apiGroups: ["networking.k8s.io"]
+    resources:
+      - ingresses
+      - ingressclasses
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Helm needs this sometimes
   - apiGroups: ["batch"]
     resources:
       - jobs
       - cronjobs
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-  - apiGroups: ["networking.k8s.io"]
-    resources:
-      - ingresses
-    verbs:
-      - get
-      - list
-      - watch
-      - create
-      - delete
-      - update
+    verbs: ["*"]
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
