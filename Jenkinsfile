@@ -45,8 +45,9 @@ pipeline {
     }
 
     stage('Approve PROD') {
+      agent none
       steps {
-        input message: 'Deploy to PROD?'
+        input message: 'Deploy to PROD?', ok: 'Deploy'
       }
     }
 
