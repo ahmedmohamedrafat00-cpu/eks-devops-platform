@@ -12,10 +12,13 @@ spec:
       env:
         - name: AWS_REGION
           value: us-east-1
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
         - name: AWS_SDK_LOAD_CONFIG
           value: "true"
         - name: AWS_EC2_METADATA_DISABLED
-          value: "false"
+          value: "true"
+
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
