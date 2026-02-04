@@ -3,6 +3,7 @@ kind: Pod
 spec:
   serviceAccountName: jenkins
   containers:
+
     - name: kaniko
       image: gcr.io/kaniko-project/executor:debug
       command:
@@ -16,6 +17,13 @@ spec:
       volumeMounts:
         - name: docker-config
           mountPath: /kaniko/.docker
+
+    - name: helm
+      image: alpine/helm:3.14.4
+      command:
+        - cat
+      tty: true
+
   volumes:
     - name: docker-config
       emptyDir: {}
