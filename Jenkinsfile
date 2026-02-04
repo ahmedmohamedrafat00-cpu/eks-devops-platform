@@ -21,7 +21,12 @@ pipeline {
             /kaniko/executor \
               --dockerfile=application/Dockerfile \
               --context=application \
-              --destination=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}
+              --destination=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/app-backend:${BUILD_NUMBER} \
+              --verbosity=info \
+              --push-retry=3 \
+              --use-new-run \
+              --oci-layout-path=/kaniko/oci \
+              --snapshotMode=redo
           """
         }
       }
