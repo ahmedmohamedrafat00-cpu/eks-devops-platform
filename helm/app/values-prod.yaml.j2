@@ -1,35 +1,19 @@
-global:
-  env: prod
+namespace: prod
 
 backend:
-  replicaCount: 2
-
+  replicas: 2
   image:
     repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-backend
-    tag: "REPLACED_BY_JENKINS"
-    pullPolicy: IfNotPresent
-
-  containerPort: 8080
-
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "1Gi"
-    limits:
-      cpu: "1"
-      memory: "2Gi"
+    tag: "{{ build_tag }}"
+    pullPolicy: Always
 
 frontend:
-  replicaCount: 2
-
+  replicas: 2
   image:
     repository: nginx
-    tag: stable
-    pullPolicy: IfNotPresent
-
-  containerPort: 80
+    tag: latest
+    pullPolicy: Always
 
 ingress:
   enabled: true
-  className: alb
-
+  host: ""

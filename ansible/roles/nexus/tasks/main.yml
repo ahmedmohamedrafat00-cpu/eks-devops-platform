@@ -1,9 +1,0 @@
-- name: Nexus is deployed via Terraform – skipping API configuration
-  debug:
-    msg: >
-      Nexus deployed successfully.
-      Please complete initial setup manually:
-      - Login to Nexus UI
-      - Enable Docker Bearer Token Realm
-      - Create docker-hosted repository
-

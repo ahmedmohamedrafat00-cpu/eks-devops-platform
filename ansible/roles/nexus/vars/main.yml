@@ -1,5 +1,0 @@
-nexus_admin_user: admin
-nexus_admin_password: admin123
-
-nexus_url: http://nexus-service:8081
-
