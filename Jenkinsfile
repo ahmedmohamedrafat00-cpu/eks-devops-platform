@@ -46,9 +46,11 @@ pipeline {
           ]) {
             sshagent(credentials: ['ansible-ssh-key']) {
               sh """
-                ssh -o StrictHostKeyChecking=no \
-                    -o ProxyJump=ec2-user@${BASTION_IP} \
-                    ec2-user@${ANSIBLE_PRIVATE_IP} \
+                ssh \
+                  -o UserKnownHostsFile=/dev/null \
+                  -o StrictHostKeyChecking=no \
+                  -o ProxyJump=ec2-user@${BASTION_IP} \
+                  ec2-user@${ANSIBLE_PRIVATE_IP} \
                   'cd ~/eks-devops-platform && \
                    ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml \
                      -e deploy_env=${ENVIRONMENT} -e image_tag=${IMAGE_TAG}'
