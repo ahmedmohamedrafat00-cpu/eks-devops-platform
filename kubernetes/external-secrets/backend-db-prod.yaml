@@ -1,0 +1,31 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: backend-db
+  namespace: prod
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: ClusterSecretStore
+
+  target:
+    name: app-app-secrets
+    creationPolicy: Owner
+
+  data:
+    - secretKey: SPRING_DATASOURCE_URL
+      remoteRef:
+        key: prod/app/backend/db
+        property: SPRING_DATASOURCE_URL
+
+    - secretKey: SPRING_DATASOURCE_USERNAME
+      remoteRef:
+        key: prod/app/backend/db
+        property: SPRING_DATASOURCE_USERNAME
+
+    - secretKey: SPRING_DATASOURCE_PASSWORD
+      remoteRef:
+        key: prod/app/backend/db
+        property: SPRING_DATASOURCE_PASSWORD
+
