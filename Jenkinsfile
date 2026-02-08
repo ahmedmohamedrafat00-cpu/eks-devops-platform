@@ -49,33 +49,27 @@ pipeline {
                 set -e
 
 
-                # 1) install openssh client tools (ssh + ssh-keyscan) inside helm container
                 apk add --no-cache openssh-client >/dev/null
 
 
-                # 2) build a known_hosts file for both bastion + ansible server
                 KNOWN_HOSTS="$WORKSPACE/known_hosts"
                 rm -f "$KNOWN_HOSTS"
                 touch "$KNOWN_HOSTS"
                 chmod 600 "$KNOWN_HOSTS"
 
 
-                # add bastion host key (public)
+                
                 ssh-keyscan -H "$BASTION_IP" >> "$KNOWN_HOSTS" 2>/dev/null || true
 
 
-                # add ansible server host key (private, through bastion route still ok)
-                ssh-keyscan -H "$ANSIBLE_PRIVATE_IP" >> "$KNOWN_HOSTS" 2>/dev/null || true
-
-
-                # 3) run deploy via ssh through bastion using that known_hosts
+                
                 ssh \
                   -o UserKnownHostsFile="$KNOWN_HOSTS" \
                   -o GlobalKnownHostsFile=/dev/null \
-                  -o StrictHostKeyChecking=yes \
+                  -o StrictHostKeyChecking=accept-new \
                   -o ProxyJump="ec2-user@$BASTION_IP" \
                   ec2-user@"$ANSIBLE_PRIVATE_IP" \
-                  "cd ~/eks-devops-platform && ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml -e deploy_env=${ENVIRONMENT} -e image_tag=${IMAGE_TAG}"
+                  "cd ~/eks-devops-platform && ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml -e deploy_env=dev -e image_tag=${IMAGE_TAG}"
               '''
             }
           }
