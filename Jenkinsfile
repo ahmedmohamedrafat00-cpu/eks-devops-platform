@@ -48,25 +48,13 @@ pipeline {
               sh '''
                 set -e
 
-
                 apk add --no-cache openssh-client >/dev/null
 
-
-                KNOWN_HOSTS="$WORKSPACE/known_hosts"
-                rm -f "$KNOWN_HOSTS"
-                touch "$KNOWN_HOSTS"
-                chmod 600 "$KNOWN_HOSTS"
-
-
-                
-                ssh-keyscan -H "$BASTION_IP" >> "$KNOWN_HOSTS" 2>/dev/null || true
-
-
-                
                 ssh \
-                  -o UserKnownHostsFile="$KNOWN_HOSTS" \
+                  -o StrictHostKeyChecking=no \
+                  -o UserKnownHostsFile=/dev/null \
                   -o GlobalKnownHostsFile=/dev/null \
-                  -o StrictHostKeyChecking=accept-new \
+                  -o LogLevel=ERROR \
                   -o ProxyJump="ec2-user@$BASTION_IP" \
                   ec2-user@"$ANSIBLE_PRIVATE_IP" \
                   "cd ~/eks-devops-platform && ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml -e deploy_env=dev -e image_tag=${IMAGE_TAG}"
