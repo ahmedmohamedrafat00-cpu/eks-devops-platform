@@ -47,12 +47,18 @@ pipeline {
             sshagent(credentials: ['ansible-ssh-key']) {
               sh '''
                 set -e
+                apk add --no-cache openssh-client
 
-                apk add --no-cache openssh-client >/dev/null
+
+                KNOWN_HOSTS="$WORKSPACE/known_hosts"
+                rm -f "$KNOWN_HOSTS"
+                touch "$KNOWN_HOSTS"
+                chmod 600 "$KNOWN_HOSTS"
+
 
                 ssh \
                   -o StrictHostKeyChecking=no \
-                  -o UserKnownHostsFile=/dev/null \
+                  -o UserKnownHostsFile="$KNOWN_HOSTS" \
                   -o GlobalKnownHostsFile=/dev/null \
                   -o LogLevel=ERROR \
                   -o ProxyJump="ec2-user@$BASTION_IP" \
