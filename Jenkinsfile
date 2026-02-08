@@ -56,12 +56,12 @@ pipeline {
                 chmod 600 "$KNOWN_HOSTS"
 
 
-                ssh \
-                  -o StrictHostKeyChecking=no \
-                  -o UserKnownHostsFile="$KNOWN_HOSTS" \
-                  -o GlobalKnownHostsFile=/dev/null \
-                  -o LogLevel=ERROR \
-                  -o ProxyJump="ec2-user@$BASTION_IP" \
+                SSH_COMMON_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR"
+                PROXY_CMD="ssh $SSH_COMMON_OPTS -W %h:%p ec2-user@$BASTION_IP"
+
+
+                ssh $SSH_COMMON_OPTS \
+                  -o ProxyCommand="$PROXY_CMD" \
                   ec2-user@"$ANSIBLE_PRIVATE_IP" \
                   "cd ~/eks-devops-platform && ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml -e deploy_env=dev -e image_tag=${IMAGE_TAG}"
               '''
