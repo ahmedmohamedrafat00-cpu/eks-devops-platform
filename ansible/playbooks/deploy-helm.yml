@@ -1,15 +1,18 @@
 ---
-- name: Deploy Application to EKS using Helm
+- name: Deploy Application to EKS using Helm (multi-env)
   hosts: ansible
   become: false
 
   vars:
     deploy_env: "{{ deploy_env | default('dev') }}"
+    image_tag: "{{ image_tag | default('17') }}"
     app_namespace: "app-{{ deploy_env }}"
     repo_dir: "/home/ec2-user/eks-devops-platform"
 
-  tasks:
+    app_chart: "{{ repo_dir }}/helm/app"
+    pg_chart: "{{ repo_dir }}/helm/postgres"
 
+  tasks:
     - name: Clone or update repository
       git:
         repo: https://github.com/ahmedmohamedrafat00-cpu/eks-devops-platform.git
@@ -22,6 +25,7 @@
         msg:
           - "Deploy environment: {{ deploy_env }}"
           - "Namespace: {{ app_namespace }}"
+          - "Image tag: {{ image_tag }}"
 
     - name: Ensure namespace exists
       kubernetes.core.k8s:
@@ -35,15 +39,18 @@
     # ---------------------------
     - name: Deploy PostgreSQL via Helm
       command: >
-        helm upgrade --install postgres {{ repo_dir }}/helm/postgres
+        helm upgrade --install postgres {{ pg_chart }}
         --namespace {{ app_namespace }}
-        -f {{ repo_dir }}/helm/postgres/values.yaml
+        -f {{ pg_chart }}/values.yaml
 
     # ---------------------------
     # Application
     # ---------------------------
-    - name: Deploy Application via Helm
+    - name: Deploy Application via Helm (set image tag + env)
       command: >
-        helm upgrade --install app {{ repo_dir }}/helm/app
+        helm upgrade --install app {{ app_chart }}
         --namespace {{ app_namespace }}
-        -f {{ repo_dir }}/helm/app/values.yaml
+        -f {{ app_chart }}/values.yaml
+        --set backend.image.tag={{ image_tag }}
+        --set global.env={{ deploy_env }}
+        --set ingress.host=""

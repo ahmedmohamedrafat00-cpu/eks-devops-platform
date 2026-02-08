@@ -29,6 +29,10 @@ spec:
             - name: SPRING_PROFILES_ACTIVE
               value: {{ .Values.global.env | default "dev" | quote }}
 
+            # Make backend serve under /api to match Ingress routing
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: "/api"
+
           envFrom:
             - secretRef:
                 name: {{ include "app.fullname" . }}-secrets
@@ -43,14 +47,14 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /api/actuator/health
               port: {{ .Values.backend.containerPort }}
             initialDelaySeconds: 20
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /api/actuator/health
               port: {{ .Values.backend.containerPort }}
             initialDelaySeconds: 60
             periodSeconds: 20
