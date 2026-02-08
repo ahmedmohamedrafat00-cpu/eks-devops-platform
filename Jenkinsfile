@@ -17,7 +17,6 @@ pipeline {
   }
 
   stages {
-
     stage('Print Info') {
       steps {
         echo "ENVIRONMENT=${params.ENVIRONMENT}"
@@ -38,22 +37,24 @@ pipeline {
       }
     }
 
-    stage('Deploy via Ansible') {
-  steps {
-    container('helm') {
-      withCredentials([
-        string(credentialsId: 'bastion-ip', variable: 'BASTION_IP'),
-        string(credentialsId: 'ansible-private-ip', variable: 'ANSIBLE_PRIVATE_IP')
-      ]) {
-        sshagent(credentials: ['ansible-ssh-key']) {
-          sh """
-            ssh -o StrictHostKeyChecking=no \
-                -o ProxyJump=ec2-user@${BASTION_IP} \
-                ec2-user@${ANSIBLE_PRIVATE_IP} \
-              'cd ~/eks-devops-platform && \
-               ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml \
-                 -e deploy_env=${ENVIRONMENT} -e image_tag=${IMAGE_TAG}'
-          """
+    stage('Deploy via Ansible (SSH through Bastion)') {
+      steps {
+        container('helm') {
+          withCredentials([
+            string(credentialsId: 'bastion-ip', variable: 'BASTION_IP'),
+            string(credentialsId: 'ansible-private-ip', variable: 'ANSIBLE_PRIVATE_IP')
+          ]) {
+            sshagent(credentials: ['ansible-ssh-key']) {
+              sh """
+                ssh -o StrictHostKeyChecking=no \
+                    -o ProxyJump=ec2-user@${BASTION_IP} \
+                    ec2-user@${ANSIBLE_PRIVATE_IP} \
+                  'cd ~/eks-devops-platform && \
+                   ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml \
+                     -e deploy_env=${ENVIRONMENT} -e image_tag=${IMAGE_TAG}'
+              """
+            }
+          }
         }
       }
     }
