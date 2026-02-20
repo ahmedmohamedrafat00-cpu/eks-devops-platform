@@ -1,46 +1,44 @@
-# ==============================
-# ALB Controller IAM Policy
-# ==============================
 resource "aws_iam_policy" "alb_controller_policy" {
-  name   = "AWSLoadBalancerControllerIAMPolicy"
-
+  count  = var.enable_irsa ? 1 : 0
+  name   = "AWSLoadBalancerControllerIAMPolicy-${var.cluster_name}"
   policy = file("${path.module}/alb-controller-policy.json")
 }
 
-# ==============================
-# Assume Role Policy (IRSA)
-# ==============================
 data "aws_iam_policy_document" "alb_controller_assume_role" {
+  count = var.enable_irsa ? 1 : 0
+
   statement {
     effect = "Allow"
 
     principals {
       type        = "Federated"
-      identifiers = [data.aws_iam_openid_connect_provider.eks.arn]
+      identifiers = [local.oidc_arn]
     }
 
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(data.aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      variable = "${local.oidc_provider}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "${local.oidc_provider}:sub"
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
     }
   }
 }
 
-# ==============================
-# IAM Role
-# ==============================
 resource "aws_iam_role" "alb_controller" {
-  name               = "alb-controller-role"
-  assume_role_policy = data.aws_iam_policy_document.alb_controller_assume_role.json
+  count              = var.enable_irsa ? 1 : 0
+  name               = "alb-controller-role-${var.cluster_name}"
+  assume_role_policy = data.aws_iam_policy_document.alb_controller_assume_role[0].json
 }
 
-# ==============================
-# Attach Policy
-# ==============================
 resource "aws_iam_role_policy_attachment" "alb_controller_policy_attach" {
-  role       = aws_iam_role.alb_controller.name
-  policy_arn = aws_iam_policy.alb_controller_policy.arn
+  count      = var.enable_irsa ? 1 : 0
+  role       = aws_iam_role.alb_controller[0].name
+  policy_arn = aws_iam_policy.alb_controller_policy[0].arn
 }

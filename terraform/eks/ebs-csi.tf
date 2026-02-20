@@ -2,26 +2,24 @@
 # EBS CSI Driver – IRSA
 ############################
 
-# Get EKS cluster info
 data "aws_eks_cluster" "this" {
-  name = var.cluster_name
+  name       = aws_eks_cluster.this.name
+  depends_on = [aws_eks_cluster.this]
 }
 
 data "aws_eks_cluster_auth" "this" {
-  name = var.cluster_name
+  name       = aws_eks_cluster.this.name
+  depends_on = [aws_eks_cluster.this]
 }
 
-# Get OIDC provider
-resource "aws_iam_openid_connect_provider" "this" {
+data "tls_certificate" "oidc" {
   url = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+}
 
-  client_id_list = [
-    "sts.amazonaws.com"
-  ]
-
-  thumbprint_list = [
-    "9e99a48a9960b14926bb7f3b02e22da0ecd2e9f1"
-  ]
+resource "aws_iam_openid_connect_provider" "this" {
+  url             = data.aws_eks_cluster.this.identity[0].oidc[0].issuer
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.oidc.certificates[0].sha1_fingerprint]
 }
 
 locals {
@@ -31,9 +29,7 @@ locals {
     ""
   )
 }
-############################
-# IAM Role for EBS CSI
-############################
+
 data "aws_iam_policy_document" "ebs_csi_assume_role" {
   statement {
     effect = "Allow"
@@ -47,6 +43,12 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 
     condition {
       test     = "StringEquals"
+      variable = "${local.oidc_provider_url}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
       variable = "${local.oidc_provider_url}:sub"
       values   = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
     }
@@ -54,7 +56,7 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 }
 
 resource "aws_iam_role" "ebs_csi_driver" {
-  name               = "eks-ebs-csi-driver-role"
+  name               = "eks-ebs-csi-driver-role-${var.cluster_name}"
   assume_role_policy = data.aws_iam_policy_document.ebs_csi_assume_role.json
 }
 
@@ -63,11 +65,8 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
-############################
-# EBS CSI Addon
-############################
 resource "aws_eks_addon" "ebs_csi" {
-  cluster_name             = var.cluster_name
+  cluster_name             = aws_eks_cluster.this.name
   addon_name               = "aws-ebs-csi-driver"
   service_account_role_arn = aws_iam_role.ebs_csi_driver.arn
 

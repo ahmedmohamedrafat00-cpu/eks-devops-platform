@@ -1,10 +1,17 @@
 resource "aws_ecr_repository" "app_backend" {
-  name = "app-backend"
+  name                 = "app-backend"
+  image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
   }
-
-  image_tag_mutability = "MUTABLE"
 }
 
+resource "aws_ecr_repository" "app_frontend" {
+  name                 = "app-frontend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}

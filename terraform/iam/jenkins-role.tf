@@ -19,12 +19,12 @@ resource "aws_iam_role_policy_attachment" "jenkins_cloudwatch" {
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
 
-resource "aws_iam_instance_profile" "jenkins_profile" {
-  name = "jenkins-instance-profile"
-  role = aws_iam_role.jenkins_role.name
-}
-
 resource "aws_iam_role_policy_attachment" "jenkins_ec2" {
   role       = aws_iam_role.jenkins_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
+}
+
+resource "aws_iam_instance_profile" "jenkins_profile" {
+  name = "jenkins-instance-profile"
+  role = aws_iam_role.jenkins_role.name
 }

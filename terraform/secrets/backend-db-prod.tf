@@ -8,12 +8,12 @@ resource "aws_secretsmanager_secret" "backend_db_prod" {
   }
 }
 
-#resource "aws_secretsmanager_secret_version" "backend_db_prod" {
-  #secret_id = aws_secretsmanager_secret.backend_db_prod.id
+resource "aws_secretsmanager_secret_version" "backend_db_prod" {
+  secret_id = aws_secretsmanager_secret.backend_db_prod.id
 
-  #secret_string = jsonencode({
-    #SPRING_DATASOURCE_URL      = "jdbc:postgresql://postgres:5432/app"
-    #SPRING_DATASOURCE_USERNAME = "admin"
-    #SPRING_DATASOURCE_PASSWORD = "admin"
-  #})
-#}
+  secret_string = jsonencode({
+    SPRING_DATASOURCE_URL      = "jdbc:postgresql://postgres:5432/app"
+    SPRING_DATASOURCE_USERNAME = "app_user"
+    SPRING_DATASOURCE_PASSWORD = "admin"
+  })
+}

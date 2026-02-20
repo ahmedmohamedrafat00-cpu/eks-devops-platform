@@ -1,13 +1,7 @@
-locals {
-  eks_oidc_provider = replace(
-    data.aws_eks_cluster.eks.identity[0].oidc[0].issuer,
-    "https://",
-    ""
-  )
-}
-
 resource "aws_iam_role" "external_secrets_irsa" {
-  name = "external-secrets-irsa-role"
+  count = var.enable_irsa ? 1 : 0
+
+  name = "external-secrets-irsa-role-${var.cluster_name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,12 +9,13 @@ resource "aws_iam_role" "external_secrets_irsa" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.eks.arn
+          Federated = local.oidc_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
-            "${local.eks_oidc_provider}:sub" = "system:serviceaccount:external-secrets:external-secrets"
+            "${local.oidc_provider}:aud" = "sts.amazonaws.com"
+            "${local.oidc_provider}:sub" = "system:serviceaccount:external-secrets:external-secrets"
           }
         }
       }
@@ -29,8 +24,10 @@ resource "aws_iam_role" "external_secrets_irsa" {
 }
 
 resource "aws_iam_role_policy" "external_secrets_policy" {
-  name = "external-secrets-policy"
-  role = aws_iam_role.external_secrets_irsa.id
+  count = var.enable_irsa ? 1 : 0
+
+  name = "external-secrets-policy-${var.cluster_name}"
+  role = aws_iam_role.external_secrets_irsa[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"

@@ -14,12 +14,6 @@ resource "aws_iam_role" "ansible_role" {
   })
 }
 
-# Attach policies to Ansible role
-resource "aws_iam_role_policy_attachment" "ansible_ssm" {
-  role       = aws_iam_role.ansible_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
 resource "aws_iam_role_policy_attachment" "ansible_ec2" {
   role       = aws_iam_role.ansible_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2FullAccess"
@@ -30,20 +24,14 @@ resource "aws_iam_role_policy_attachment" "ansible_vpc" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonVPCFullAccess"
 }
 
-resource "aws_iam_role_policy_attachment" "ansible_ebs_csi" {
+resource "aws_iam_role_policy_attachment" "ansible_ssm" {
   role       = aws_iam_role.ansible_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "ansible_cloudwatch" {
   role       = aws_iam_role.ansible_role.name
   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-}
-
-# Instance profile for EC2
-resource "aws_iam_instance_profile" "ansible_profile" {
-  name = "ansible-eks-profile"
-  role = aws_iam_role.ansible_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "ansible_eks_cluster" {
@@ -54,4 +42,14 @@ resource "aws_iam_role_policy_attachment" "ansible_eks_cluster" {
 resource "aws_iam_role_policy_attachment" "ansible_eks_service" {
   role       = aws_iam_role.ansible_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ansible_ebs_csi" {
+  role       = aws_iam_role.ansible_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
+
+resource "aws_iam_instance_profile" "ansible_profile" {
+  name = "ansible-eks-profile"
+  role = aws_iam_role.ansible_role.name
 }

@@ -1,3 +1,6 @@
+# -------------------------------
+# Bastion IAM Role for EC2
+# -------------------------------
 resource "aws_iam_role" "bastion_role" {
   name = "bastion-eks-role"
 
@@ -48,4 +51,3 @@ resource "aws_iam_role_policy" "bastion_eks_describe" {
     ]
   })
 }
-

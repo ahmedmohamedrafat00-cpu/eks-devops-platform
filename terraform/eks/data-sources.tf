@@ -6,22 +6,6 @@ data "terraform_remote_state" "network" {
   }
 }
 
-data "terraform_remote_state" "iam" {
-  backend = "local"
-
-  config = {
-    path = "../iam/terraform.tfstate"
-  }
-}
-
-data "aws_eks_cluster" "eks" {
-  name = var.cluster_name
-}
-
-data "aws_eks_cluster_auth" "eks" {
-  name = var.cluster_name
-}
-
 data "terraform_remote_state" "servers_setup" {
   backend = "local"
 
@@ -29,4 +13,3 @@ data "terraform_remote_state" "servers_setup" {
     path = "../servers-setup/terraform.tfstate"
   }
 }
-

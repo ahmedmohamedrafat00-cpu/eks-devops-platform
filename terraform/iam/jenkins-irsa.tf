@@ -1,15 +1,7 @@
-locals {
-  oidc_provider = replace(
-    data.aws_eks_cluster.eks.identity[0].oidc[0].issuer,
-    "https://",
-    ""
-  )
-}
-# ---------------------------------
-# Jenkins IRSA Role
-# ---------------------------------
 resource "aws_iam_role" "jenkins_irsa" {
-  name = "jenkins-irsa-role"
+  count = var.enable_irsa ? 1 : 0
+
+  name = "jenkins-irsa-role-${var.cluster_name}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -17,11 +9,12 @@ resource "aws_iam_role" "jenkins_irsa" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = data.aws_iam_openid_connect_provider.eks.arn
+          Federated = local.oidc_arn
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
+            "${local.oidc_provider}:aud" = "sts.amazonaws.com"
             "${local.oidc_provider}:sub" = "system:serviceaccount:ci:jenkins"
           }
         }
@@ -29,29 +22,19 @@ resource "aws_iam_role" "jenkins_irsa" {
     ]
   })
 }
-# ---------------------------------
-# Jenkins – EKS permissions
-# ---------------------------------
-resource "aws_iam_role_policy_attachment" "jenkins_irsa_policy" {
-  role       = aws_iam_role.jenkins_irsa.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
 
-# ---------------------------------
-# Jenkins – ECR permissions
-# ---------------------------------
 resource "aws_iam_role_policy" "jenkins_ecr_policy" {
-  name = "jenkins-ecr-policy"
-  role = aws_iam_role.jenkins_irsa.id
+  count = var.enable_irsa ? 1 : 0
+
+  name = "jenkins-ecr-policy-${var.cluster_name}"
+  role = aws_iam_role.jenkins_irsa[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = [
-          "ecr:GetAuthorizationToken"
-        ]
+        Effect   = "Allow"
+        Action   = ["ecr:GetAuthorizationToken"]
         Resource = "*"
       },
       {

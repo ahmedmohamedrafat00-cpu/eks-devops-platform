@@ -1,15 +1,15 @@
-resource "aws_secretsmanager_secret" "backend_db_dev" {
-  name = "dev/app/backend/db"
+resource "aws_secretsmanager_secret" "backend_db_test" {
+  name = "test/app/backend/db"
 
   tags = {
-    env     = "dev"
+    env     = "test"
     app     = "backend"
     managed = "terraform"
   }
 }
 
-resource "aws_secretsmanager_secret_version" "backend_db_dev" {
-  secret_id = aws_secretsmanager_secret.backend_db_dev.id
+resource "aws_secretsmanager_secret_version" "backend_db_test" {
+  secret_id = aws_secretsmanager_secret.backend_db_test.id
 
   secret_string = jsonencode({
     SPRING_DATASOURCE_URL      = "jdbc:postgresql://postgres:5432/app"
