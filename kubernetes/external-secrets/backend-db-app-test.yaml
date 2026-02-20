@@ -16,15 +16,15 @@ spec:
   data:
     - secretKey: SPRING_DATASOURCE_URL
       remoteRef:
-        key: dev/app/backend/db
+        key: test/app/backend/db
         property: SPRING_DATASOURCE_URL
 
     - secretKey: SPRING_DATASOURCE_USERNAME
       remoteRef:
-        key: dev/app/backend/db
+        key: test/app/backend/db
         property: SPRING_DATASOURCE_USERNAME
 
     - secretKey: SPRING_DATASOURCE_PASSWORD
       remoteRef:
-        key: dev/app/backend/db
+        key: test/app/backend/db
         property: SPRING_DATASOURCE_PASSWORD
