@@ -1,9 +1,7 @@
-FROM python:3.13-slim
+FROM maven:3.9.6-eclipse-temurin-17-alpine
 
-WORKDIR /tests
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
 
-COPY tests/ .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-CMD ["pytest", "test_api_dashboard.py", "--maxfail=1", "--disable-warnings", "-q"]
+CMD ["mvn", "-B", "test"]
