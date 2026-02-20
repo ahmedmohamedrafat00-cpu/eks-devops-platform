@@ -1,74 +1,101 @@
 pipeline {
-  agent {
-    kubernetes {
-      yamlFile 'Jenkins/pod.yaml'
-    }
-  }
+  agent any
 
   parameters {
-    choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'prod'], description: 'Target environment')
+    choice(name: 'ENVIRONMENT', choices: ['dev', 'test'], description: 'Target environment')
   }
 
   environment {
-    AWS_ACCOUNT_ID = "985539792593"
-    AWS_REGION     = "us-east-1"
-    IMAGE_REPO     = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/app-backend"
-    IMAGE_TAG      = "${BUILD_NUMBER}"
+    AWS_REGION     = 'us-east-1'
+    AWS_ACCOUNT_ID = '985539792593'
+    ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+    BACKEND_REPO   = 'app-backend'
+    FRONTEND_REPO  = 'app-frontend'
+
+    IMAGE_TAG      = "build-${BUILD_NUMBER}-${params.ENVIRONMENT}"
   }
 
   stages {
-    stage('Print Info') {
-      steps {
-        echo "ENVIRONMENT=${params.ENVIRONMENT}"
-        echo "IMAGE=${env.IMAGE_REPO}:${env.IMAGE_TAG}"
-      }
+    stage('Checkout') {
+      steps { checkout scm }
     }
 
-    stage('Build & Push Backend Image (ECR)') {
+    stage('Build Backend') {
       steps {
-        container('kaniko') {
-          sh """
-            /kaniko/executor \
-              --dockerfile=application/Dockerfile \
-              --context=application \
-              --destination=${IMAGE_REPO}:${IMAGE_TAG}
-          """
+        dir('application') {
+          sh 'mvn -B -DskipTests clean package'
         }
       }
     }
 
-    stage('Deploy via Ansible (SSH through Bastion)') {
+    stage('Build Frontend') {
       steps {
-        container('helm') {
-          withCredentials([
-            string(credentialsId: 'bastion-ip', variable: 'BASTION_IP'),
-            string(credentialsId: 'ansible-private-ip', variable: 'ANSIBLE_PRIVATE_IP')
-          ]) {
-            sshagent(credentials: ['ansible-ssh-key']) {
-              sh '''
-                set -e
-                apk add --no-cache openssh-client
+        dir('application/frontend') {
+          sh 'npm ci'
+          sh 'npm run build'
+        }
+      }
+    }
 
+    stage('Run Tests') {
+      steps {
+        dir('application') {
+          sh 'mvn -B test'
+        }
+      }
+    }
 
-                KNOWN_HOSTS="$WORKSPACE/known_hosts"
-                rm -f "$KNOWN_HOSTS"
-                touch "$KNOWN_HOSTS"
-                chmod 600 "$KNOWN_HOSTS"
+    stage('ECR Login') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']]) {
+          sh '''
+            set -e
+            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+          '''
+        }
+      }
+    }
 
+    stage('Build & Push Images') {
+      steps {
+        sh '''
+          set -e
+          docker build -t ${ECR_REGISTRY}/${BACKEND_REPO}:${IMAGE_TAG} -f application/Dockerfile application
+          docker build -t ${ECR_REGISTRY}/${FRONTEND_REPO}:${IMAGE_TAG} -f application/frontend/Dockerfile application/frontend
 
-                SSH_COMMON_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=$KNOWN_HOSTS -o GlobalKnownHostsFile=/dev/null -o LogLevel=ERROR"
-                PROXY_CMD="ssh $SSH_COMMON_OPTS -W %h:%p ec2-user@$BASTION_IP"
+          docker push ${ECR_REGISTRY}/${BACKEND_REPO}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${FRONTEND_REPO}:${IMAGE_TAG}
+        '''
+      }
+    }
 
+    stage('Deploy via Ansible (via Bastion)') {
+      steps {
+        script {
+          def BASTION_IP = sh(script: "terraform -chdir=terraform/servers-setup output -raw bastion_public_ip", returnStdout: true).trim()
+          def CONTROLLER_IP = sh(script: "terraform -chdir=terraform/servers-setup output -raw controller_private_ip", returnStdout: true).trim()
 
-                ssh $SSH_COMMON_OPTS \
-                  -o ProxyCommand="$PROXY_CMD" \
-                  ec2-user@"$ANSIBLE_PRIVATE_IP" \
-                  "cd ~/eks-devops-platform && ansible-playbook -i ansible/inventory/hosts.ini ansible/playbooks/deploy-helm.yml -e deploy_env=dev -e image_tag=${IMAGE_TAG}"
-              '''
-            }
+          sshagent(credentials: ['deployer-one-ssh']) {
+            sh """
+              set -e
+              ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \\
+                -o ProxyCommand="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ec2-user@${BASTION_IP}" \\
+                ec2-user@${CONTROLLER_IP} \\
+                'cd ~/eks-devops-platform/ansible && \\
+                 ansible-playbook -i inventory/hosts.generated.ini playbooks/deploy-helm.yml \\
+                   -e env=${ENVIRONMENT} \\
+                   -e ecr.image_tag=${IMAGE_TAG}'
+            """
           }
         }
       }
+    }
+  }
+
+  post {
+    always {
+      echo "Image tag: ${IMAGE_TAG}"
     }
   }
 }

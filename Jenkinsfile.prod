@@ -14,18 +14,20 @@ pipeline {
   }
 
   stages {
-
     stage('Deploy to PROD') {
       when {
         expression { params.IMAGE_TAG?.trim() }
       }
       steps {
-        container('helm') {
+        container('tools') {
           sh """
-            helm upgrade --install app helm/app \
-              -n prod \
-              --values helm/app/values-prod.yaml.j2 \
-              --set backend.image.tag=${IMAGE_TAG}
+            set -e
+            helm upgrade --install devops-app-prod helm/app \\
+              -n app-prod \\
+              --create-namespace \\
+              --values helm/app/values-prod.yaml \\
+              --set backend.image.tag=${IMAGE_TAG} \\
+              --set frontend.image.tag=${IMAGE_TAG}
           """
         }
       }

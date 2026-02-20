@@ -1,8 +1,16 @@
 apiVersion: v1
-kind: ServiceAccount
+kind: Service
 metadata:
   name: jenkins
   namespace: ci
-  annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::985539792593:role/jenkins-irsa-role
-
+spec:
+  selector:
+    app: jenkins
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: agent
+      port: 50000
+      targetPort: 50000
+  type: ClusterIP
