@@ -23,7 +23,7 @@ frontend:
   replicaCount: 1
 
   image:
-    repository: nginx
+    repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-frontend
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -31,9 +31,9 @@ frontend:
 
 ingress:
   enabled: true
-  host: app.dev.example.com
+  host: ""
+  className: alb
 
 secrets:
-  dbUrl: jdbc:postgresql://postgres:5432/app
-  dbUser: app_user
-  dbPassword: dev_password
+  create: false
+  name: app-app-secrets

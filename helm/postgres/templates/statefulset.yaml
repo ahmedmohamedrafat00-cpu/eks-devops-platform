@@ -4,7 +4,7 @@ metadata:
   name: postgres
 spec:
   serviceName: postgres
-  replicas: {{ .Values.postgres.replicas }}
+  replicas: {{ .Values.postgres.replicas | default 1 }}
   selector:
     matchLabels:
       app: postgres
@@ -18,11 +18,14 @@ spec:
           image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
           env:
             - name: POSTGRES_DB
-              value: {{ .Values.postgresConfig.db }}
+              value: {{ .Values.postgresConfig.db | quote }}
             - name: POSTGRES_USER
-              value: {{ .Values.postgresConfig.user }}
+              value: {{ .Values.postgresConfig.user | quote }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.postgresConfig.password }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresConfig.existingSecret | quote }}
+                  key: {{ .Values.postgresConfig.passwordKey | quote }}
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:
@@ -31,12 +34,15 @@ spec:
             - name: data
               mountPath: /var/lib/postgresql/data
               subPath: pgdata
+
+  {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
         name: data
       spec:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: {{ .Values.storage.storageClassName }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
         resources:
           requests:
-            storage: {{ .Values.storage.size }}
+            storage: {{ .Values.persistence.size | quote }}
+  {{- end }}

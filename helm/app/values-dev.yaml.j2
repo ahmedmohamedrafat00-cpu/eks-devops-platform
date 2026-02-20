@@ -1,8 +1,22 @@
+global:
+  env: dev
+
 backend:
   replicaCount: 1
   containerPort: 8080
-
   image:
     repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-backend
     tag: "{{ IMAGE_TAG }}"
     pullPolicy: Always
+
+frontend:
+  replicaCount: 1
+  containerPort: 80
+  image:
+    repository: 985539792593.dkr.ecr.us-east-1.amazonaws.com/app-frontend
+    tag: "{{ IMAGE_TAG }}"
+    pullPolicy: Always
+
+ingress:
+  enabled: true
+  host: ""

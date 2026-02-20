@@ -7,9 +7,11 @@ postgres:
 postgresConfig:
   db: myappdb
   user: appuser
-  password: apppassword
+
+  existingSecret: postgres-credentials
+  passwordKey: POSTGRES_PASSWORD
 
 persistence:
   enabled: true
   size: 5Gi
-  storageClass: gp2
+  storageClass: gp3

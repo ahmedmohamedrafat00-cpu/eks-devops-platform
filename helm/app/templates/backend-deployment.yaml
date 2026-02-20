@@ -3,18 +3,18 @@ kind: Deployment
 metadata:
   name: {{ include "app.fullname" . }}-backend
   labels:
-    app: {{ include "app.name" . }}
+    {{- include "app.labels" . | nindent 4 }}
     component: backend
 spec:
   replicas: {{ .Values.backend.replicaCount | default 1 }}
   selector:
     matchLabels:
-      app: {{ include "app.name" . }}
+      {{- include "app.selectorLabels" . | nindent 6 }}
       component: backend
   template:
     metadata:
       labels:
-        app: {{ include "app.name" . }}
+        {{- include "app.selectorLabels" . | nindent 8 }}
         component: backend
     spec:
       containers:
@@ -35,15 +35,15 @@ spec:
 
           envFrom:
             - secretRef:
-                name: {{ include "app.fullname" . }}-secrets
+                name: {{ .Values.secrets.name | default (printf "%s-secrets" (include "app.fullname" .)) }}
 
           resources:
             requests:
-              cpu: {{ .Values.backend.resources.requests.cpu | default "250m" }}
-              memory: {{ .Values.backend.resources.requests.memory | default "512Mi" }}
+              cpu: {{ .Values.backend.resources.requests.cpu | default "250m" | quote }}
+              memory: {{ .Values.backend.resources.requests.memory | default "512Mi" | quote }}
             limits:
-              cpu: {{ .Values.backend.resources.limits.cpu | default "1" }}
-              memory: {{ .Values.backend.resources.limits.memory | default "1Gi" }}
+              cpu: {{ .Values.backend.resources.limits.cpu | default "500m" | quote }}
+              memory: {{ .Values.backend.resources.limits.memory | default "1Gi" | quote }}
 
           readinessProbe:
             httpGet:

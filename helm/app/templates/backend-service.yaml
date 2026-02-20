@@ -1,13 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend
+  name: {{ include "app.fullname" . }}-backend
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    component: backend
+  annotations:
+    alb.ingress.kubernetes.io/healthcheck-path: /api/actuator/health
 spec:
   type: ClusterIP
   selector:
-    app: {{ include "app.name" . }}
+    {{- include "app.selectorLabels" . | nindent 4 }}
     component: backend
   ports:
-    - port: 80
-      targetPort: {{ .Values.backend.containerPort }}
-
+    - name: http
+      port: 80
+      targetPort: {{ .Values.backend.containerPort | default 8080 }}
