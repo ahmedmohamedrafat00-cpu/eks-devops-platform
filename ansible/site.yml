@@ -1,0 +1,40 @@
+---
+- name: Common setup on all servers
+  hosts: all
+  become: true
+  roles:
+    - common
+  tags:
+    - common
+
+- name: Install Jenkins
+  hosts: jenkins
+  become: true
+  roles:
+    - jenkins
+  tags:
+    - jenkins
+
+- name: Configure EKS access on controller
+  hosts: controllers
+  become: true
+  roles:
+    - eks_access
+  tags:
+    - eks_access
+
+- name: Install AWS Load Balancer Controller
+  hosts: controllers
+  become: true
+  roles:
+    - alb_controller
+  tags:
+    - alb_controller
+
+- name: Deploy Helm releases
+  hosts: controllers
+  become: true
+  roles:
+    - helm
+  tags:
+    - deploy

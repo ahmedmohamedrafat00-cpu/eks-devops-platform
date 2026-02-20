@@ -1,0 +1,21 @@
+---
+- name: Install AWS Load Balancer Controller
+  hosts: controllers
+  become: true
+
+  pre_tasks:
+    - name: Load generated terraform vars if present
+      include_vars:
+        file: "{{ item }}"
+      loop:
+        - "../group_vars/generated.eks.yml"
+        - "../group_vars/generated.iam.yml"
+      ignore_errors: true
+
+  vars_files:
+    - ../vars/main.yml
+    - ../vars/secrets.yml
+
+  roles:
+    - eks_access
+    - alb_controller

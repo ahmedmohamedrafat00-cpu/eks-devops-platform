@@ -1,0 +1,6 @@
+---
+- name: Configure EKS access on controllers
+  hosts: controllers
+  become: true
+  roles:
+    - eks_access

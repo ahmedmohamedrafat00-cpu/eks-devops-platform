@@ -1,0 +1,16 @@
+postgres:
+  replicas: 1
+  image:
+    repository: postgres
+    tag: "17"
+
+postgresConfig:
+  db: app
+  user: "{{ secrets.dbUser | default('admin') }}"
+  existingSecret: app-app-secrets
+  passwordKey: SPRING_DATASOURCE_PASSWORD
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: "{{ storage.postgres_storage_class }}"

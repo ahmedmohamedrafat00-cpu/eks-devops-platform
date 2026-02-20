@@ -1,0 +1,38 @@
+---
+- name: Add AWS EKS Helm repo
+  command: >
+    helm repo add {{ alb_controller.helm_repo_name }} {{ alb_controller.helm_repo_url }}
+  environment:
+    KUBECONFIG: /root/.kube/config
+  changed_when: false
+  failed_when: false
+
+- name: Update Helm repos
+  command: helm repo update
+  environment:
+    KUBECONFIG: /root/.kube/config
+  changed_when: false
+
+- name: Ensure namespace exists
+  shell: |
+    set -euo pipefail
+    kubectl --kubeconfig /root/.kube/config create namespace {{ alb_controller.namespace }} \
+      --dry-run=client -o yaml | kubectl --kubeconfig /root/.kube/config apply -f -
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Install AWS Load Balancer Controller
+  command: >
+    helm upgrade --install {{ alb_controller.release_name }}
+    {{ alb_controller.chart }}
+    --namespace {{ alb_controller.namespace }}
+    --set clusterName={{ eks_cluster_name }}
+    --set region={{ aws_region }}
+    --set serviceAccount.create=true
+    --set serviceAccount.name={{ alb_controller.service_account_name }}
+    --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"={{ alb_controller_role_arn }}
+    --wait
+    --timeout 10m
+  environment:
+    KUBECONFIG: /root/.kube/config

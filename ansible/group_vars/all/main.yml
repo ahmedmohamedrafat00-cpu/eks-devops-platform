@@ -1,0 +1,53 @@
+---
+aws_region: "us-east-1"
+eks_cluster_name: "eks-devops-cluster"
+
+env: "dev"
+
+namespaces:
+  dev: "app-dev"
+  test: "app-test"
+  prod: "app-prod"
+
+ecr:
+  account_id: "985539792593"
+  region: "{{ aws_region }}"
+  registry: "{{ ecr.account_id }}.dkr.ecr.{{ ecr.region }}.amazonaws.com"
+  backend_repo: "app-backend"
+  frontend_repo: "app-frontend"
+  image_tag: "latest"
+
+images:
+  backend_repository: "{{ ecr.registry }}/{{ ecr.backend_repo }}"
+  frontend_repository: "{{ ecr.registry }}/{{ ecr.frontend_repo }}"
+  tag: "{{ ecr.image_tag }}"
+
+helm:
+  app_chart_path: "../helm/app"
+  postgres_chart_path: "../helm/postgres"
+  releases:
+    app: "devops-app"
+    postgres: "postgres"
+
+app:
+  backend_port: 8080
+  frontend_port: 80
+
+ingress:
+  enabled: true
+  class_name: "alb"
+  host: ""
+
+storage:
+  postgres_storage_class: "gp3"
+  postgres_size: "5Gi"
+
+alb_controller:
+  namespace: "kube-system"
+  release_name: "aws-load-balancer-controller"
+  chart_repo_name: "eks"
+  chart_repo_url: "https://aws.github.io/eks-charts"
+  chart_name: "aws-load-balancer-controller"
+  chart_version: ""
+  service_account_name: "aws-load-balancer-controller"
+  vpc_id: ""

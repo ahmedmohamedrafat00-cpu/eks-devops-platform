@@ -1,0 +1,12 @@
+---
+alb_controller:
+  namespace: "kube-system"
+  release_name: "aws-load-balancer-controller"
+
+  helm_repo_name: "eks"
+  helm_repo_url: "https://aws.github.io/eks-charts"
+
+  chart: "eks/aws-load-balancer-controller"
+  chart_version: ""
+
+  service_account_name: "aws-load-balancer-controller"

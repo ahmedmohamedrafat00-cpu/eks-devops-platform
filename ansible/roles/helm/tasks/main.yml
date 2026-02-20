@@ -1,0 +1,90 @@
+---
+- name: Set namespace for current environment
+  set_fact:
+    target_namespace: "{{ namespaces[env] }}"
+
+- name: Ensure namespace exists
+  shell: |
+    set -euo pipefail
+    kubectl --kubeconfig /root/.kube/config create namespace {{ target_namespace }} \
+      --dry-run=client -o yaml | kubectl --kubeconfig /root/.kube/config apply -f -
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Detect default StorageClass
+  shell: |
+    set -euo pipefail
+    kubectl --kubeconfig /root/.kube/config get storageclass \
+      -o jsonpath='{range .items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")]}{.metadata.name}{"\n"}{end}'
+  args:
+    executable: /bin/bash
+  register: default_sc
+  changed_when: false
+  failed_when: false
+
+- name: Set postgres storage class
+  set_fact:
+    postgres_storage_class: >-
+      {{ (storage.postgres_storage_class | trim)
+         if (storage.postgres_storage_class is defined and (storage.postgres_storage_class | trim) != '')
+         else ((default_sc.stdout | trim) if (default_sc.stdout | trim) != '' else 'gp3') }}
+
+- name: Render app values file
+  template:
+    src: app-values.yaml.j2
+    dest: "/tmp/app-values-{{ env }}.yaml"
+    mode: "0644"
+
+- name: Render postgres values file
+  template:
+    src: postgres-values.yaml.j2
+    dest: "/tmp/postgres-values-{{ env }}.yaml"
+    mode: "0644"
+
+- name: Deploy postgres chart
+  command: >
+    helm upgrade --install {{ helm.releases.postgres }}-{{ env }}
+    {{ helm.postgres_chart_path }}
+    --namespace {{ target_namespace }}
+    --values /tmp/postgres-values-{{ env }}.yaml
+    --wait
+    --timeout 10m
+  environment:
+    KUBECONFIG: /root/.kube/config
+
+- name: Deploy app chart
+  command: >
+    helm upgrade --install {{ helm.releases.app }}-{{ env }}
+    {{ helm.app_chart_path }}
+    --namespace {{ target_namespace }}
+    --values /tmp/app-values-{{ env }}.yaml
+    --wait
+    --timeout 10m
+  environment:
+    KUBECONFIG: /root/.kube/config
+
+- name: Wait for ALB hostname
+  command: >
+    kubectl --kubeconfig /root/.kube/config -n {{ target_namespace }}
+    get ingress -l app.kubernetes.io/instance={{ helm.releases.app }}-{{ env }}
+    -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}'
+  register: alb_dns_wait
+  retries: 36
+  delay: 10
+  until: alb_dns_wait.stdout is match('.*elb\\.amazonaws\\.com$')
+  changed_when: false
+
+- name: Print ALB DNS
+  debug:
+    msg: "ALB DNS: {{ alb_dns_wait.stdout }}"
+
+- name: Wait for backend health endpoint
+  uri:
+    url: "http://{{ alb_dns_wait.stdout }}/api/actuator/health"
+    method: GET
+    status_code: [200]
+  register: health
+  retries: 30
+  delay: 10
+  until: health.status == 200

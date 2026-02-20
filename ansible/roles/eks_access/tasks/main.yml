@@ -1,0 +1,21 @@
+---
+- name: Ensure kubeconfig directory exists
+  file:
+    path: /root/.kube
+    state: directory
+    mode: "0700"
+
+- name: Update kubeconfig for EKS cluster
+  command: >
+    aws eks update-kubeconfig
+    --region {{ aws_region }}
+    --name {{ eks_cluster_name }}
+    --kubeconfig /root/.kube/config
+  environment:
+    AWS_REGION: "{{ aws_region }}"
+  changed_when: false
+
+- name: Verify cluster access
+  command: kubectl --kubeconfig /root/.kube/config get nodes
+  register: nodes_out
+  changed_when: false

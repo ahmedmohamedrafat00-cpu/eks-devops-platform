@@ -1,56 +1,34 @@
 ---
-- name: Deploy Application to EKS using Helm (multi-env)
-  hosts: ansible
-  become: false
+- name: Deploy application with Helm
+  hosts: controllers
+  become: true
+
+  vars_files:
+    - ../vars/main.yml
+    - ../vars/secrets.yml
 
   vars:
-    deploy_env: "{{ deploy_env | default('dev') }}"
-    image_tag: "{{ image_tag | default('17') }}"
-    app_namespace: "app-{{ deploy_env }}"
-    repo_dir: "/home/ec2-user/eks-devops-platform"
+    env: "{{ env | default('dev') }}"
 
-    app_chart: "{{ repo_dir }}/helm/app"
-    pg_chart: "{{ repo_dir }}/helm/postgres"
+  roles:
+    - eks_access
 
   tasks:
-    - name: Clone or update repository
-      git:
-        repo: https://github.com/ahmedmohamedrafat00-cpu/eks-devops-platform.git
-        dest: "{{ repo_dir }}"
-        version: main
-        update: yes
 
-    - name: Print deployment info
-      debug:
-        msg:
-          - "Deploy environment: {{ deploy_env }}"
-          - "Namespace: {{ app_namespace }}"
-          - "Image tag: {{ image_tag }}"
+    - name: Apply namespaces
+      shell: kubectl apply -f ../kubernetes/00-namespaces.yaml
 
-    - name: Ensure namespace exists
-      kubernetes.core.k8s:
-        api_version: v1
-        kind: Namespace
-        name: "{{ app_namespace }}"
-        state: present
+    - name: Install External Secrets Operator (ESO)
+      shell: |
+        set -e
+        helm repo add external-secrets https://charts.external-secrets.io
+        helm repo update
+        helm upgrade --install external-secrets external-secrets/external-secrets \
+          -n external-secrets --create-namespace --wait
 
-    # ---------------------------
-    # PostgreSQL
-    # ---------------------------
-    - name: Deploy PostgreSQL via Helm
-      command: >
-        helm upgrade --install postgres {{ pg_chart }}
-        --namespace {{ app_namespace }}
-        -f {{ pg_chart }}/values.yaml
+    - name: Apply External Secrets manifests
+      shell: kubectl apply -f ../kubernetes/external-secrets/
 
-    # ---------------------------
-    # Application
-    # ---------------------------
-    - name: Deploy Application via Helm (set image tag + env)
-      command: >
-        helm upgrade --install app {{ app_chart }}
-        --namespace {{ app_namespace }}
-        -f {{ app_chart }}/values.yaml
-        --set backend.image.tag={{ image_tag }}
-        --set global.env={{ deploy_env }}
-        --set ingress.host=""
+    - name: Run Helm role
+      include_role:
+        name: helm

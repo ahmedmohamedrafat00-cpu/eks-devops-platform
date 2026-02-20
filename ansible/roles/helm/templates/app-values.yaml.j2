@@ -1,0 +1,27 @@
+global:
+  env: {{ env }}
+
+backend:
+  replicaCount: 1
+  image:
+    repository: "{{ images.backend_repository }}"
+    tag: "{{ images.tag }}"
+    pullPolicy: IfNotPresent
+  containerPort: {{ app.backend_port }}
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: "{{ images.frontend_repository }}"
+    tag: "{{ images.tag }}"
+    pullPolicy: IfNotPresent
+  containerPort: {{ app.frontend_port }}
+
+ingress:
+  enabled: {{ ingress.enabled | bool }}
+  host: "{{ ingress.host }}"
+  className: "{{ ingress.class_name | default('alb') }}"
+
+secrets:
+  create: false
+  name: "app-app-secrets"
